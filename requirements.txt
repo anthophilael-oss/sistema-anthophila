@@ -1,8 +1,13 @@
-streamlit==1.31.0
+streamlit
 pandas
-reportlab
-qrcode
+google-auth
+google-auth-oauthlib
+google-auth-httplib2
+google-api-python-client
 Pillow
-python-barcode
 python-docx
 xlsxwriter
+reportlab
+qrcode
+python-barcode
+streamlit-calendar

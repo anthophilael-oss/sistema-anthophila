@@ -120,22 +120,22 @@ st.markdown("""
     </style>
 """, unsafe_allow_html=True)
 
-# Rutas de Archivos (Optimizadas para Windows/Linux)
-BASE_DIR = os.path.join(os.getcwd(), "PACIENTES_ANTHOPHILA")
-DATA_FILE = os.path.join(os.getcwd(), "mapeo_dni.json")
-CITAS_FILE = os.path.join(os.getcwd(), "citas_anthophila.json")
-EXCEL_CITAS = os.path.join(os.getcwd(), "db_reservas_anthophila.csv")
-ASIGNACIONES_FILE = os.path.join(os.getcwd(), "asignaciones_pruebas.json")
-INGRESOS_FILE = os.path.join(os.getcwd(), "db_ingresos_anthophila.csv")
-LIBRO_DIARIO_FILE = os.path.join(os.getcwd(), "libro_diario_5_2.csv")
-PLAN_CONTABLE_FILE = os.path.join(os.getcwd(), "plan_contable_5_4.csv")
-REGISTRO_COMPRAS_8_1_FILE = os.path.join(os.getcwd(), "registro_compras_8_1.csv")
-REGISTRO_COMPRAS_8_2_FILE = os.path.join(os.getcwd(), "registro_compras_8_2.csv")
-REGISTRO_VENTAS_14_1_FILE = os.path.join(os.getcwd(), "registro_ventas_14_1.csv")
-DB_CLIENTES_FILE = os.path.join(os.getcwd(), "db_clientes_anthophila.csv")
-IMG_FOLDER = os.path.join(os.getcwd(), "imagenes")
+# Rutas de Archivos (Optimizadas para Streamlit Cloud / Rutas Relativas)
+BASE_DIR = "PACIENTES_ANTHOPHILA"
+DATA_FILE = "mapeo_dni.json"
+CITAS_FILE = "citas_anthophila.json"
+EXCEL_CITAS = "db_reservas_anthophila.csv"
+ASIGNACIONES_FILE = "asignaciones_pruebas.json"
+INGRESOS_FILE = "db_ingresos_anthophila.csv"
+LIBRO_DIARIO_FILE = "libro_diario_5_2.csv"
+PLAN_CONTABLE_FILE = "plan_contable_5_4.csv"
+REGISTRO_COMPRAS_8_1_FILE = "registro_compras_8_1.csv"
+REGISTRO_COMPRAS_8_2_FILE = "registro_compras_8_2.csv"
+REGISTRO_VENTAS_14_1_FILE = "registro_ventas_14_1.csv"
+DB_CLIENTES_FILE = "db_clientes_anthophila.csv"
+IMG_FOLDER = "imagenes"
 LOGO_FILE = "logo4_antho.jpg"
-COMPROBANTES_FOLDER = os.path.join(os.getcwd(), "comprobantes")
+COMPROBANTES_FOLDER = "comprobantes"
 
 # Crear carpetas necesarias si no existen
 for folder in [BASE_DIR, IMG_FOLDER, COMPROBANTES_FOLDER]:
@@ -148,6 +148,18 @@ PSICOLOGO_FULL = "Jose Miguel Granda Cortez. Psicólogo Colegiado y Habilitado (
 USUARIO_ADMIN = "admin"
 PASSWORD_ADMIN = "anthophila2026"
 PASSWORD_FAMILIA = "familia2026"
+
+# Información de Medios de Pago
+INFO_PAGOS = {
+    "Yape": {
+        "detalle": "Celular: 922768805 (A nombre de Jose Miguel Granda)",
+        "logo": "logo yape.jfif"
+    },
+    "Caja Tacna": {
+        "detalle": "A nombre de: Anthophila E-Learning\nNº de Cuenta: 009211000130688\nCCI: 81300921100013068880",
+        "logo": "logo caja.png"
+    }
+}
 
 # Credenciales SUNAT Reales
 SUNAT_RUC = "20607755907"
@@ -752,32 +764,73 @@ elif "Reserva de Cita" in opcion:
         cel_padre = c2.text_input("WhatsApp (Ej: 51922...)")
         
         st.write("---")
-        st.subheader("Configuración de Sesiones")
-        tipo_sesion = st.radio("Seleccione modalidad:", 
-                               ["Sesión Única / Evaluación", 
-                                "Pack 8 Sesiones (2 veces por semana)", 
-                                "Pack 12 Sesiones (3 veces por semana)",
-                                "Sesión Virtual"])
+        # Dividir en dos columnas principales para títulos y contenido
+        col_main_mod, col_main_pago = st.columns(2)
         
-        f_col, h_col, b_col = st.columns([2, 2, 1])
-        f_sel = f_col.date_input("Fecha de Inicio", datetime.now() + timedelta(days=1))
-        h_sel = h_col.time_input("Hora de la Cita")
-        
-        if b_col.button("➕ Programar"):
-            nueva_fec_hora_str = f"{f_sel} {h_sel.strftime('%H:%M')}"
+        with col_main_mod:
+            st.subheader("⚙️ Configuración de Sesiones")
+            tipo_sesion = st.radio("Seleccione modalidad:", 
+                                   ["Sesión Única / Evaluación", 
+                                    "Pack 8 Sesiones (2 veces por semana)", 
+                                    "Pack 12 Sesiones (3 veces por semana)",
+                                    "Sesión Virtual"])
             
-            # Cargar citas actuales para validar
-            citas_actuales = cargar_json(CITAS_FILE)
-            disponible, mensaje = verificar_disponibilidad(nueva_fec_hora_str, citas_actuales + [{"start": f.replace(" ", "T")} for f in st.session_state.temp_fechas])
+            # Mover programación de fecha y hora aquí para que esté más cerca
+            st.write("---")
+            st.markdown("📅 **Programar Fecha y Hora:**")
+            f_c, h_c = st.columns(2)
+            f_sel = f_c.date_input("Fecha de Inicio", datetime.now() + timedelta(days=1), key="f_fam")
+            h_sel = h_c.time_input("Hora de la Cita", key="h_fam")
             
-            if disponible:
-                if nueva_fec_hora_str not in st.session_state.temp_fechas:
-                    st.session_state.temp_fechas.append(nueva_fec_hora_str)
-                    st.rerun()
+            if st.button("➕ AGREGAR SESIÓN A LA LISTA", width='stretch'):
+                nueva_fec_hora_str = f"{f_sel} {h_sel.strftime('%H:%M')}"
+                
+                # Cargar citas actuales para validar
+                citas_actuales = cargar_json(CITAS_FILE)
+                disponible, mensaje = verificar_disponibilidad(nueva_fec_hora_str, citas_actuales + [{"start": f.replace(" ", "T")} for f in st.session_state.temp_fechas])
+                
+                if disponible:
+                    if nueva_fec_hora_str not in st.session_state.temp_fechas:
+                        st.session_state.temp_fechas.append(nueva_fec_hora_str)
+                        st.rerun()
+                    else:
+                        st.warning("Esa fecha y hora ya está en tu lista.")
                 else:
-                    st.warning("Esa fecha y hora ya está en tu lista.")
-            else:
-                st.error(f"❌ {mensaje}")
+                    st.error(f"❌ {mensaje}")
+        
+        with col_main_pago:
+            st.subheader("💳 Medios de Pago")
+            
+            # Sub-columnas para mostrar logos y detalles al mismo tiempo
+            c_yape, c_tacna = st.columns(2)
+            
+            # Tamaño estandarizado para logos (Ajustado para que se vean del mismo tamaño visual)
+            LOGO_WIDTH = 85
+            
+            with c_yape:
+                # Buscar en raíz directamente (Ruta relativa para la web)
+                path_y = INFO_PAGOS["Yape"]["logo"]
+                if not os.path.exists(path_y):
+                    path_y = os.path.join(IMG_FOLDER, INFO_PAGOS["Yape"]["logo"])
+                
+                if os.path.exists(path_y):
+                    st.image(Image.open(path_y), width=LOGO_WIDTH)
+                st.caption(f"**YAPE**\n{INFO_PAGOS['Yape']['detalle']}")
+                
+            with c_tacna:
+                # Buscar en raíz directamente (Ruta relativa para la web)
+                path_t = INFO_PAGOS["Caja Tacna"]["logo"]
+                if not os.path.exists(path_t):
+                    path_t = os.path.join(IMG_FOLDER, INFO_PAGOS["Caja Tacna"]["logo"])
+                
+                if os.path.exists(path_t):
+                    # Forzamos el mismo ancho para ambos para mantener la simetría
+                    st.image(Image.open(path_t), width=LOGO_WIDTH)
+                st.caption(f"**CAJA TACNA**\n{INFO_PAGOS['Caja Tacna']['detalle']}")
+            
+            # En lugar de selectbox, asumimos que usará cualquiera de los dos
+            medio_pago = "Yape / Caja Tacna"
+            st.info("💡 Por favor, realice el pago por cualquiera de estos medios y adjunte el comprobante por WhatsApp.")
 
     if st.session_state.temp_fechas:
         st.subheader("Sesiones a registrar:")
@@ -856,6 +909,7 @@ elif "Reserva de Cita" in opcion:
                                        f"Padre: {n_padre}\n"
                                        f"WhatsApp: {cel_padre}\n"
                                        f"Modalidad: {tipo_sesion}\n"
+                                       f"Medio de Pago: {medio_pago}\n"
                                        f"Fechas: {', '.join(st.session_state.temp_fechas)}")
                 
                 # Mensaje de RESPUESTA (Lo que el especialista devuelve al padre)
@@ -881,6 +935,7 @@ elif "Reserva de Cita" in opcion:
                     <p><b>APODERADO:</b> {n_padre}</p>
                     <p><b>WHATSAPP:</b> {cel_padre}</p>
                     <p><b>MODALIDAD:</b> {tipo_sesion}</p>
+                    <p><b>MEDIO DE PAGO:</b> {medio_pago}</p>
                     <p><b>FECHAS:</b></p>
                     <p style="font-size: 0.9rem;">{', '.join(st.session_state.temp_fechas)}</p>
                     <hr style="border-top: 1px dashed #ccc;">
