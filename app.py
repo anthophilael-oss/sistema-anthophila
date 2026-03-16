@@ -621,7 +621,7 @@ for folder in [BASE_DIR, IMG_FOLDER, COMPROBANTES_FOLDER]:
     if not os.path.exists(folder): os.makedirs(folder)
 
 # Función para cargar imágenes robustamente (Raíz o imagenes/)
-def cargar_imagen(nombre_archivo, width=None):
+def cargar_imagen(nombre_archivo, width=None, center_cols=None):
     # Intentar en la raíz
     path = nombre_archivo
     if not os.path.exists(path):
@@ -631,10 +631,12 @@ def cargar_imagen(nombre_archivo, width=None):
     if os.path.exists(path):
         try:
             img = Image.open(path)
-            if width:
-                st.image(img, width=width)
+            if center_cols:
+                c1, c2, c3 = st.columns(center_cols)
+                with c2:
+                    st.image(img, width=width, use_container_width=not width)
             else:
-                st.image(img)
+                st.image(img, width=width, use_container_width=not width)
             return True
         except:
             pass
@@ -650,8 +652,8 @@ if not st.session_state['authenticated']:
     with col_c:
         st.markdown("<br><br>", unsafe_allow_html=True)
         with st.container(border=True):
-            # Cargar y mostrar el logo oficial (logo4_antho.jpg)
-            if not cargar_imagen(LOGO_FILE, width=200):
+            # Cargar y mostrar el logo oficial (logo4_antho.jpg) centrado
+            if not cargar_imagen(LOGO_FILE, width=200, center_cols=[0.1, 0.8, 0.1]):
                 st.markdown("<h1 style='text-align: center;'>Anthophila</h1>", unsafe_allow_html=True)
             
             st.markdown("<p style='text-align: center; color: gray;'>Sistema de Gestión de Historias Clínicas</p>", unsafe_allow_html=True)
@@ -678,7 +680,7 @@ if not st.session_state['authenticated']:
 
 # --- INTERFAZ PRINCIPAL ---
 with st.sidebar:
-    if not cargar_imagen(LOGO_FILE, width=150):
+    if not cargar_imagen(LOGO_FILE, width=150, center_cols=[0.05, 0.9, 0.05]):
         st.markdown(f"<h2 style='text-align: center;'>🐝 Anthophila</h2>", unsafe_allow_html=True)
     
     st.markdown(f"<p style='text-align: center;'><b>Rol:</b> {st.session_state['role'].capitalize()}</p>", unsafe_allow_html=True)
@@ -923,7 +925,7 @@ elif "Reserva de Cita" in opcion:
                                               f"Verificación C.Ps.P: https://www.cpsp.pe/busquedas/busqueda_colegiados.html#")
                 
                 # El link de WhatsApp enviará ambos mensajes separados para facilidad del especialista
-                url_wa = f"https://wa.me/{CELULAR_ESPECIALISTA}?text={urllib.parse.quote(msg_al_especialista + '\n\n--- RESPUESTA PARA CONFIRMAR ---\n' + msg_respuesta_especialista)}"
+                url_wa = f"https://wa.me/{CELULAR_ESPECIALISTA}?text={urllib.parse.quote(msg_al_especialista + '\n\n' + msg_respuesta_especialista)}"
                 
                 st.success(f"✅ ¡Reserva guardada con éxito!")
                 
