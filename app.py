@@ -917,15 +917,12 @@ elif "Reserva de Cita" in opcion:
                                        f"Medio de Pago: {medio_pago}\n"
                                        f"Fechas: {', '.join(st.session_state.temp_fechas)}")
                 
-                # Mensaje de RESPUESTA (Lo que el especialista devuelve al padre)
+                # Mensaje de RESPUESTA PRE-CONSTRUIDO (Para que el especialista responda al padre)
                 msg_respuesta_especialista = (f"¡Hola! Confirmo la reserva de {n_nino}. ID: {id_reserva}\n\n"
                                               f"Cita Confirmada para {n_nino}. Lo atenderá el especialista: {PSICOLOGO_FULL}. "
                                               f"Verificación C.Ps.P: https://www.cpsp.pe/busquedas/busqueda_colegiados.html#")
                 
-                # El link de WhatsApp enviará el mensaje AL especialista, pero estructurado para que él solo reenvíe la confirmación
-                # Según tu instrucción, el padre envía la información y el especialista responde.
-                # Para facilitar esto, el mensaje que se envía por WA llevará la estructura de la cita primero.
-                
+                # El link de WhatsApp enviará ambos mensajes separados para facilidad del especialista
                 url_wa = f"https://wa.me/{CELULAR_ESPECIALISTA}?text={urllib.parse.quote(msg_al_especialista + '\n\n--- RESPUESTA PARA CONFIRMAR ---\n' + msg_respuesta_especialista)}"
                 
                 st.success(f"✅ ¡Reserva guardada con éxito!")
@@ -950,11 +947,12 @@ elif "Reserva de Cita" in opcion:
 
                 with st.container(border=True):
                     st.subheader("📢 Pasos finales para la familia")
-                    st.write("1. **Confirmar con el Especialista:** Haz clic abajo para enviar el mensaje de confirmación listo para el Psicólogo.")
-                    st.markdown(f'''<a href="{url_wa}" target="_blank"><button style="background-color:#25D366;color:white;width:100%;padding:15px;border:none;border-radius:10px;font-weight:bold;cursor:pointer;font-size:1rem;">✉️ ENVIAR CONFIRMACIÓN POR WHATSAPP</button></a>''', unsafe_allow_html=True)
+                    st.write("1. **Confirmar con el Especialista:** Haz clic abajo para enviar los datos de tu reserva por WhatsApp.")
+                    st.markdown(f'''<a href="{url_wa}" target="_blank"><button style="background-color:#25D366;color:white;width:100%;padding:15px;border:none;border-radius:10px;font-weight:bold;cursor:pointer;font-size:1rem;">✉️ ENVIAR DATOS POR WHATSAPP</button></a>''', unsafe_allow_html=True)
                     
                     st.write("---")
-                    st.write("2. **Recordatorio Personal:** Descarga el calendario para activar alertas automáticas en tu celular y correo.")
+                    st.write("2. **Confirmación:** El especialista recibirá tus datos y te enviará la respuesta de confirmación oficial.")
+                    st.write("3. **Recordatorio Personal:** Descarga el calendario para activar alertas automáticas en tu celular y correo.")
                     
                     # Generar archivo ICS (iCalendar) compatible con Google, Outlook, Apple
                     ics_content = "BEGIN:VCALENDAR\nVERSION:2.0\nPRODID:-//Anthophila//ES\n"
