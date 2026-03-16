@@ -1,0 +1,8 @@
+streamlit==1.31.0
+pandas
+reportlab
+qrcode
+Pillow
+python-barcode
+python-docx
+xlsxwriter
