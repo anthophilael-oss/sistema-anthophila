@@ -9,17 +9,22 @@ from PIL import Image
 from docx import Document
 from docx.shared import Pt
 
-# Intentar importar librerías opcionales para facturación
-try:
-    from reportlab.lib.pagesizes import A4, A5
-    from reportlab.pdfgen import canvas
-    from reportlab.lib.units import cm
-    from reportlab.lib import colors
-    import qrcode
-    import barcode
-    from barcode.writer import ImageWriter
-    HAS_BILLING_LIBS = True
-except ImportError:
+CERT_LOCAL_FILE = "certificado.p12"
+ENABLE_FACTURACION_SUNAT = os.path.exists(CERT_LOCAL_FILE)
+
+if ENABLE_FACTURACION_SUNAT:
+    try:
+        from reportlab.lib.pagesizes import A4, A5
+        from reportlab.pdfgen import canvas
+        from reportlab.lib.units import cm
+        from reportlab.lib import colors
+        import qrcode
+        import barcode
+        from barcode.writer import ImageWriter
+        HAS_BILLING_LIBS = True
+    except ImportError:
+        HAS_BILLING_LIBS = False
+else:
     HAS_BILLING_LIBS = False
 
 # --- CONFIGURACIÓN E IDENTIDAD ---
@@ -162,15 +167,20 @@ INFO_PAGOS = {
 }
 
 # Credenciales SUNAT Reales
-def _secret(key, default=""):
-    return st.secrets[key] if key in st.secrets else default
+if ENABLE_FACTURACION_SUNAT:
+    def _secret(key, default=""):
+        return st.secrets[key] if key in st.secrets else default
 
-_sunat = _secret("sunat", {})
-
-SUNAT_RUC = (_sunat.get("ruc") if isinstance(_sunat, dict) else "") or _secret("SUNAT_RUC", "00000000000")
-SUNAT_USER = (_sunat.get("usuario_sol") if isinstance(_sunat, dict) else "") or _secret("SUNAT_USER", "")
-SUNAT_PASS = (_sunat.get("clave_sol") if isinstance(_sunat, dict) else "") or _secret("SUNAT_PASS", "")
-CERT_PATH = (_sunat.get("cert_path") if isinstance(_sunat, dict) else "") or _secret("CERT_PATH", "certificado.p12")
+    _sunat = _secret("sunat", {})
+    SUNAT_RUC = (_sunat.get("ruc") if isinstance(_sunat, dict) else "") or _secret("SUNAT_RUC", "")
+    SUNAT_USER = (_sunat.get("usuario_sol") if isinstance(_sunat, dict) else "") or _secret("SUNAT_USER", "")
+    SUNAT_PASS = (_sunat.get("clave_sol") if isinstance(_sunat, dict) else "") or _secret("SUNAT_PASS", "")
+    CERT_PATH = (_sunat.get("cert_path") if isinstance(_sunat, dict) else "") or _secret("CERT_PATH", CERT_LOCAL_FILE)
+else:
+    SUNAT_RUC = ""
+    SUNAT_USER = ""
+    SUNAT_PASS = ""
+    CERT_PATH = ""
 
 # --- FUNCIONES DE PERSISTENCIA ---
 def cargar_json(archivo):
@@ -693,15 +703,18 @@ with st.sidebar:
     st.markdown("---")
     
     if st.session_state['role'] == 'admin':
-        opcion = st.radio("Menú Principal", 
-                         ["🏠 Dashboard",
-                          "📂 1. Apertura de Expediente", 
-                          "📊 5. Agenda y Base de Datos", 
-                          "📝 7. Historias Clínicas", 
-                          "📋 8. Asignación de Pruebas",
-                          "💰 9. Gestión de Ingresos",
-                          "� 10. Facturación Electrónica",
-                          "�️ 6. Mantenimiento"])
+        menu_admin = [
+            "🏠 Dashboard",
+            "📂 1. Apertura de Expediente",
+            "📊 5. Agenda y Base de Datos",
+            "📝 7. Historias Clínicas",
+            "📋 8. Asignación de Pruebas",
+            "💰 9. Gestión de Ingresos",
+        ]
+        if ENABLE_FACTURACION_SUNAT:
+            menu_admin.append("📄 10. Facturación Electrónica")
+        menu_admin.append("�️ 6. Mantenimiento")
+        opcion = st.radio("Menú Principal", menu_admin)
     else:
         opcion = st.radio("Menú Familiar", ["📅 Reserva de Cita", "📝 Módulo de Evaluación"])
     
@@ -1744,7 +1757,7 @@ elif "9. Gestión de Ingresos" in opcion:
             st.download_button(label="📥 Descargar Ventas 14.2 (Vacío)", data="", file_name=f"LE{datetime.now().strftime('%Y%m')}00140200001111.txt")
 
 # --- MÓDULO 10: FACTURACIÓN ELECTRÓNICA ---
-elif "10. Facturación Electrónica" in opcion:
+elif ENABLE_FACTURACION_SUNAT and "10. Facturación Electrónica" in opcion:
     st.header("📄 Facturación Electrónica SUNAT")
     
     # Cargar base de datos de clientes
