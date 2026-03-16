@@ -162,10 +162,15 @@ INFO_PAGOS = {
 }
 
 # Credenciales SUNAT Reales
-SUNAT_RUC = "20607755907"
-SUNAT_USER = "43707088"
-SUNAT_PASS = "Jj189114125"
-CERT_PATH = "certificado.p12"
+def _secret(key, default=""):
+    return st.secrets[key] if key in st.secrets else default
+
+_sunat = _secret("sunat", {})
+
+SUNAT_RUC = (_sunat.get("ruc") if isinstance(_sunat, dict) else "") or _secret("SUNAT_RUC", "00000000000")
+SUNAT_USER = (_sunat.get("usuario_sol") if isinstance(_sunat, dict) else "") or _secret("SUNAT_USER", "")
+SUNAT_PASS = (_sunat.get("clave_sol") if isinstance(_sunat, dict) else "") or _secret("SUNAT_PASS", "")
+CERT_PATH = (_sunat.get("cert_path") if isinstance(_sunat, dict) else "") or _secret("CERT_PATH", "certificado.p12")
 
 # --- FUNCIONES DE PERSISTENCIA ---
 def cargar_json(archivo):
