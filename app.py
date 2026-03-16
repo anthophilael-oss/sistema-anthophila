@@ -630,16 +630,18 @@ if not st.session_state['authenticated']:
     with col_c:
         st.markdown("<br><br>", unsafe_allow_html=True)
         with st.container(border=True):
-            # Cargar y mostrar el logo oficial
-            logo_path = os.path.join(IMG_FOLDER, LOGO_FILE)
+            # Cargar y mostrar el logo oficial (logo.png)
+            logo_path = LOGO_FILE # En la raíz de GitHub
+            if not os.path.exists(logo_path):
+                logo_path = os.path.join(IMG_FOLDER, LOGO_FILE)
+            
             if os.path.exists(logo_path):
                 # Centrar la imagen usando columnas
-                col_img_l, col_img_c, col_img_r = st.columns([1, 2, 1])
+                col_img_l, col_img_c, col_img_r = st.columns([0.5, 2, 0.5])
                 with col_img_c:
-                    st.image(Image.open(logo_path), width=150)
-            else:
-                st.markdown("<h1 style='text-align: center;'>Anthophila</h1>", unsafe_allow_html=True)
+                    st.image(Image.open(logo_path), width=200)
             
+            st.markdown("<h1 style='text-align: center;'>Anthophila</h1>", unsafe_allow_html=True)
             st.markdown("<p style='text-align: center; color: gray;'>Sistema de Gestión de Historias Clínicas</p>", unsafe_allow_html=True)
             
             tab_admin, tab_fam = st.tabs(["🔒 Especialista", "📅 Familias"])
