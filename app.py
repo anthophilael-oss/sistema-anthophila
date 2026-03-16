@@ -636,12 +636,12 @@ if not st.session_state['authenticated']:
                 logo_path = os.path.join(IMG_FOLDER, LOGO_FILE)
             
             if os.path.exists(logo_path):
-                # Centrar la imagen usando columnas
-                col_img_l, col_img_c, col_img_r = st.columns([0.5, 2, 0.5])
+                # Centrar la imagen usando columnas con pesos iguales en los extremos
+                col_img_l, col_img_c, col_img_r = st.columns([1, 2, 1])
                 with col_img_c:
-                    st.image(Image.open(logo_path), width=200)
+                    st.image(Image.open(logo_path), use_container_width=True)
             
-            st.markdown("<h1 style='text-align: center;'>Anthophila</h1>", unsafe_allow_html=True)
+            st.markdown("<h1 style='text-align: center; margin-top: -20px;'>Anthophila</h1>", unsafe_allow_html=True)
             st.markdown("<p style='text-align: center; color: gray;'>Sistema de Gestión de Historias Clínicas</p>", unsafe_allow_html=True)
             
             tab_admin, tab_fam = st.tabs(["🔒 Especialista", "📅 Familias"])
