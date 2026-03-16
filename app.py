@@ -633,9 +633,12 @@ if not st.session_state['authenticated']:
             # Cargar y mostrar el logo oficial
             logo_path = os.path.join(IMG_FOLDER, LOGO_FILE)
             if os.path.exists(logo_path):
-                st.image(Image.open(logo_path), width='stretch')
+                # Centrar la imagen usando columnas
+                col_img_l, col_img_c, col_img_r = st.columns([1, 2, 1])
+                with col_img_c:
+                    st.image(Image.open(logo_path), width=150)
             else:
-                st.markdown("<h1 style='text-align: center;'>🐝 Anthophila</h1>", unsafe_allow_html=True)
+                st.markdown("<h1 style='text-align: center;'>Anthophila</h1>", unsafe_allow_html=True)
             
             st.markdown("<p style='text-align: center; color: gray;'>Sistema de Gestión de Historias Clínicas</p>", unsafe_allow_html=True)
             
