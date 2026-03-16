@@ -620,6 +620,26 @@ def verificar_disponibilidad(fecha_hora_str, citas_existentes):
 for folder in [BASE_DIR, IMG_FOLDER, COMPROBANTES_FOLDER]:
     if not os.path.exists(folder): os.makedirs(folder)
 
+# Función para cargar imágenes robustamente (Raíz o imagenes/)
+def cargar_imagen(nombre_archivo, width=None):
+    # Intentar en la raíz
+    path = nombre_archivo
+    if not os.path.exists(path):
+        # Intentar en carpeta imagenes/
+        path = os.path.join(IMG_FOLDER, nombre_archivo)
+    
+    if os.path.exists(path):
+        try:
+            img = Image.open(path)
+            if width:
+                st.image(img, width=width)
+            else:
+                st.image(img)
+            return True
+        except:
+            pass
+    return False
+
 # --- SISTEMA DE LOGUEO ---
 if 'authenticated' not in st.session_state:
     st.session_state['authenticated'] = False
@@ -630,18 +650,10 @@ if not st.session_state['authenticated']:
     with col_c:
         st.markdown("<br><br>", unsafe_allow_html=True)
         with st.container(border=True):
-            # Cargar y mostrar el logo oficial (logo.png)
-            logo_path = LOGO_FILE # En la raíz de GitHub
-            if not os.path.exists(logo_path):
-                logo_path = os.path.join(IMG_FOLDER, LOGO_FILE)
+            # Cargar y mostrar el logo oficial (logo4_antho.jpg)
+            if not cargar_imagen(LOGO_FILE, width=200):
+                st.markdown("<h1 style='text-align: center;'>Anthophila</h1>", unsafe_allow_html=True)
             
-            if os.path.exists(logo_path):
-                # Centrar la imagen usando columnas con pesos iguales en los extremos
-                col_img_l, col_img_c, col_img_r = st.columns([1, 2, 1])
-                with col_img_c:
-                    st.image(Image.open(logo_path), use_container_width=True)
-            
-            st.markdown("<h1 style='text-align: center; margin-top: -20px;'>Anthophila</h1>", unsafe_allow_html=True)
             st.markdown("<p style='text-align: center; color: gray;'>Sistema de Gestión de Historias Clínicas</p>", unsafe_allow_html=True)
             
             tab_admin, tab_fam = st.tabs(["🔒 Especialista", "📅 Familias"])
@@ -666,10 +678,7 @@ if not st.session_state['authenticated']:
 
 # --- INTERFAZ PRINCIPAL ---
 with st.sidebar:
-    logo_path = os.path.join(IMG_FOLDER, LOGO_FILE)
-    if os.path.exists(logo_path):
-        st.image(Image.open(logo_path), width='stretch')
-    else:
+    if not cargar_imagen(LOGO_FILE, width=150):
         st.markdown(f"<h2 style='text-align: center;'>🐝 Anthophila</h2>", unsafe_allow_html=True)
     
     st.markdown(f"<p style='text-align: center;'><b>Rol:</b> {st.session_state['role'].capitalize()}</p>", unsafe_allow_html=True)
@@ -813,24 +822,15 @@ elif "Reserva de Cita" in opcion:
             LOGO_WIDTH = 85
             
             with c_yape:
-                # Buscar en raíz directamente (Ruta relativa para la web)
-                path_y = INFO_PAGOS["Yape"]["logo"]
-                if not os.path.exists(path_y):
-                    path_y = os.path.join(IMG_FOLDER, INFO_PAGOS["Yape"]["logo"])
-                
-                if os.path.exists(path_y):
-                    st.image(Image.open(path_y), width=LOGO_WIDTH)
+                # Carga robusta de logo Yape
+                if not cargar_imagen(INFO_PAGOS["Yape"]["logo"], width=LOGO_WIDTH):
+                    st.write("📲 **YAPE**")
                 st.caption(f"**YAPE**\n{INFO_PAGOS['Yape']['detalle']}")
                 
             with c_tacna:
-                # Buscar en raíz directamente (Ruta relativa para la web)
-                path_t = INFO_PAGOS["Caja Tacna"]["logo"]
-                if not os.path.exists(path_t):
-                    path_t = os.path.join(IMG_FOLDER, INFO_PAGOS["Caja Tacna"]["logo"])
-                
-                if os.path.exists(path_t):
-                    # Forzamos el mismo ancho para ambos para mantener la simetría
-                    st.image(Image.open(path_t), width=LOGO_WIDTH)
+                # Carga robusta de logo Caja Tacna
+                if not cargar_imagen(INFO_PAGOS["Caja Tacna"]["logo"], width=LOGO_WIDTH):
+                    st.write("🏦 **CAJA TACNA**")
                 st.caption(f"**CAJA TACNA**\n{INFO_PAGOS['Caja Tacna']['detalle']}")
             
             # En lugar de selectbox, asumimos que usará cualquiera de los dos
